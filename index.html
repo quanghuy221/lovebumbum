@@ -41,7 +41,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(5, 1, 12, 0.94);
+            background: rgba(5, 1, 12, 0.95);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
             z-index: 99999;
@@ -50,7 +50,7 @@
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            transition: opacity 0.6s ease, visibility 0.6s ease;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
         }
         #start-overlay.fade-out {
             opacity: 0;
@@ -401,7 +401,7 @@
 </head>
 <body>
 
-    <!-- Thẻ Audio hỗ trợ nhạc nền -->
+    <!-- Thẻ Audio chuẩn hóa thuộc tính cho Safari / Mobile -->
     <audio id="bgMusic" src="nhac1.m4a" loop preload="auto" playsinline webkit-playsinline></audio>
 
     <div id="start-overlay">
@@ -411,63 +411,6 @@
             <div class="start-subtitle">Chạm vào màn hình để mở quà</div>
         </div>
     </div>
-
-    <!-- 🔊 BỘ KHỞI TẠO ÂM THANH TRIỆT ĐỂ (HYBRID WEB AUDIO UNLOCKER) -->
-    <script>
-        (function() {
-            const bgMusic = document.getElementById('bgMusic');
-            const startOverlay = document.getElementById('start-overlay');
-            let isAudioUnlocked = false;
-            let audioCtx = null;
-
-            // Hàm unlock âm thanh đồng bộ
-            function forceUnlockAudio() {
-                if (isAudioUnlocked) return;
-
-                // 1. Kích hoạt Web Audio API giải phóng tầng âm thanh phần cứng
-                try {
-                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                    if (AudioContextClass && !audioCtx) {
-                        audioCtx = new AudioContextClass();
-                    }
-                    if (audioCtx && audioCtx.state === 'suspended') {
-                        audioCtx.resume();
-                    }
-                } catch (e) {
-                    console.warn("Web Audio API error:", e);
-                }
-
-                // 2. Gọi lệnh play trực tiếp trong sự kiện chạm của người dùng
-                bgMusic.volume = 0.8;
-                const playPromise = bgMusic.play();
-
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        isAudioUnlocked = true;
-                        startOverlay.classList.add('fade-out');
-                        removeListeners();
-                    }).catch(error => {
-                        console.error("Autoplay failed:", error);
-                        // Trường hợp file không tồn tại hoặc đường dẫn sai
-                        if (error.name === "NotSupportedError" || error.message.includes("supported")) {
-                            alert("Không tìm thấy file nhạc nhac1.m4a! Vui lòng kiểm tra lại tên file nhạc trong cùng thư mục.");
-                        }
-                    });
-                }
-            }
-
-            function removeListeners() {
-                ['pointerdown', 'touchstart', 'touchend', 'mousedown', 'click'].forEach(evt => {
-                    window.removeEventListener(evt, forceUnlockAudio, true);
-                });
-            }
-
-            // Đăng ký bắt sự kiện ở tầng window cao nhất với capture = true
-            ['pointerdown', 'touchstart', 'touchend', 'mousedown', 'click'].forEach(evt => {
-                window.addEventListener(evt, forceUnlockAudio, { capture: true, once: false });
-            });
-        })();
-    </script>
 
     <div id="webgl-container"></div>
 
@@ -518,6 +461,58 @@
         <p style="font-size:18px; color:#ffffff; max-width:520px; line-height:1.6;">Phát hiện hành vi mở DevTools / Soi mã nguồn!</p>
         <p style="font-size:14px; color:#b0b0b0; margin-top:16px;">Vui lòng đóng công cụ kiểm tra (F12) để tiếp tục thưởng thức không gian 3D.</p>
     </div>
+
+    <!-- 🎯 BỘ UNLOCK PHÁT NHẠC CHUẨN XÁC 100% -->
+    <script>
+        let globalAudioCtx = null;
+        let isAudioUnlocked = false;
+
+        async function initAndUnlockAudio() {
+            const bgMusic = document.getElementById('bgMusic');
+            const startOverlay = document.getElementById('start-overlay');
+
+            try {
+                // 1. Tạo Web Audio Context nếu chưa có
+                if (!globalAudioCtx) {
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContextClass) {
+                        globalAudioCtx = new AudioContextClass();
+                    }
+                }
+
+                // 2. Ép buộc AudioContext phải chuyên sang trạng thái Running BẮT BUỘC
+                if (globalAudioCtx && globalAudioCtx.state === 'suspended') {
+                    await globalAudioCtx.resume();
+                }
+
+                // 3. Đặt âm lượng và thực hiện Play
+                bgMusic.volume = parseFloat(document.getElementById('volumeSlider').value || 0.8);
+                await bgMusic.play();
+                
+                isAudioUnlocked = true;
+                startOverlay.classList.add('fade-out');
+
+            } catch (err) {
+                console.error("Lỗi unlock audio:", err);
+                // Fallback nếu trình duyệt chặn Promise
+                bgMusic.play().then(() => {
+                    isAudioUnlocked = true;
+                    startOverlay.classList.add('fade-out');
+                }).catch(e => {
+                    alert("Không thể tự phát nhạc! Kiểm tra lại file nhac1.m4a xem có trong thư mục không.");
+                });
+            }
+        }
+
+        // Đăng ký sự kiện chạm vào màn hình Overlay để kích hoạt phát nhạc ngay
+        const startOverlayEl = document.getElementById('start-overlay');
+        ['click', 'touchstart', 'pointerdown'].forEach(evtType => {
+            startOverlayEl.addEventListener(evtType, function handler(e) {
+                if (isAudioUnlocked) return;
+                initAndUnlockAudio();
+            }, { once: true });
+        });
+    </script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -631,7 +626,10 @@
             }
         }
 
-        playBtn.addEventListener('click', () => {
+        playBtn.addEventListener('click', async () => {
+            if (globalAudioCtx && globalAudioCtx.state === 'suspended') {
+                await globalAudioCtx.resume();
+            }
             if (bgMusic.paused) {
                 bgMusic.play().catch(() => {});
             } else {
@@ -688,7 +686,7 @@
         });
 
         musicOptions.forEach(option => {
-            option.addEventListener('click', function() {
+            option.addEventListener('click', async function() {
                 musicOptions.forEach(opt => opt.classList.remove('active'));
                 this.classList.add('active');
 
@@ -703,6 +701,10 @@
                     seekBar.value = 0;
                     updateSliderTrackGradient(seekBar, 0, 100);
                     timeDisplay.textContent = "00:00/00:00";
+                    
+                    if (globalAudioCtx && globalAudioCtx.state === 'suspended') {
+                        await globalAudioCtx.resume();
+                    }
                     bgMusic.play().catch(() => {});
                 }
             });
