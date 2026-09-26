@@ -24,7 +24,6 @@
             overflow: hidden;
             background-color: #030008;
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            touch-action: none;
         }
         #webgl-container {
             position: absolute;
@@ -42,7 +41,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(5, 1, 12, 0.92);
+            background: rgba(5, 1, 12, 0.94);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
             z-index: 99999;
@@ -51,7 +50,7 @@
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            transition: opacity 0.8s ease, visibility 0.8s ease;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
         }
         #start-overlay.fade-out {
             opacity: 0;
@@ -402,48 +401,71 @@
 </head>
 <body>
 
-    <audio id="bgMusic" src="nhac1.m4a" loop preload="auto" playsinline webkit-playsinline style="display: none;"></audio>
+    <!-- Thẻ Audio hỗ trợ nhạc nền -->
+    <audio id="bgMusic" src="nhac1.m4a" loop preload="auto" playsinline webkit-playsinline></audio>
 
     <div id="start-overlay">
         <div class="start-card">
             <div class="start-icon">💖</div>
             <div class="start-title">Hưng ❤️ Trân</div>
-            <div class="start-subtitle">Chạm vào bất kỳ đâu để bắt đầu</div>
+            <div class="start-subtitle">Chạm vào màn hình để mở quà</div>
         </div>
     </div>
 
+    <!-- 🔊 BỘ KHỞI TẠO ÂM THANH TRIỆT ĐỂ (HYBRID WEB AUDIO UNLOCKER) -->
     <script>
         (function() {
-            const audio = document.getElementById('bgMusic');
+            const bgMusic = document.getElementById('bgMusic');
             const startOverlay = document.getElementById('start-overlay');
-            audio.volume = 0.8;
+            let isAudioUnlocked = false;
+            let audioCtx = null;
 
-            let isUnlocked = false;
+            // Hàm unlock âm thanh đồng bộ
+            function forceUnlockAudio() {
+                if (isAudioUnlocked) return;
 
-            function handleStartInteraction(e) {
-                if (isUnlocked) return;
-                
-                audio.play().then(() => {
-                    isUnlocked = true;
-                    startOverlay.classList.add('fade-out');
-                }).catch(() => {});
+                // 1. Kích hoạt Web Audio API giải phóng tầng âm thanh phần cứng
+                try {
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContextClass && !audioCtx) {
+                        audioCtx = new AudioContextClass();
+                    }
+                    if (audioCtx && audioCtx.state === 'suspended') {
+                        audioCtx.resume();
+                    }
+                } catch (e) {
+                    console.warn("Web Audio API error:", e);
+                }
 
-                ['click', 'touchend', 'pointerdown'].forEach(evt => {
-                    startOverlay.removeEventListener(evt, handleStartInteraction);
+                // 2. Gọi lệnh play trực tiếp trong sự kiện chạm của người dùng
+                bgMusic.volume = 0.8;
+                const playPromise = bgMusic.play();
+
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        isAudioUnlocked = true;
+                        startOverlay.classList.add('fade-out');
+                        removeListeners();
+                    }).catch(error => {
+                        console.error("Autoplay failed:", error);
+                        // Trường hợp file không tồn tại hoặc đường dẫn sai
+                        if (error.name === "NotSupportedError" || error.message.includes("supported")) {
+                            alert("Không tìm thấy file nhạc nhac1.m4a! Vui lòng kiểm tra lại tên file nhạc trong cùng thư mục.");
+                        }
+                    });
+                }
+            }
+
+            function removeListeners() {
+                ['pointerdown', 'touchstart', 'touchend', 'mousedown', 'click'].forEach(evt => {
+                    window.removeEventListener(evt, forceUnlockAudio, true);
                 });
             }
 
-            ['click', 'touchend', 'pointerdown'].forEach(evt => {
-                startOverlay.addEventListener(evt, handleStartInteraction, { passive: false });
+            // Đăng ký bắt sự kiện ở tầng window cao nhất với capture = true
+            ['pointerdown', 'touchstart', 'touchend', 'mousedown', 'click'].forEach(evt => {
+                window.addEventListener(evt, forceUnlockAudio, { capture: true, once: false });
             });
-
-            document.addEventListener('touchstart', function globalFallback() {
-                if (!isUnlocked) {
-                    audio.play();
-                    isUnlocked = true;
-                    startOverlay.classList.add('fade-out');
-                }
-            }, { once: true });
         })();
     </script>
 
@@ -550,7 +572,6 @@
 
         initCodeProtection();
 
-        // 🎯 CHỈ ĐÚNG 6 CÂU CHÚC CHÍNH ĐƯỢC CHỌN LỌC
         const wishesList = [
             "Hưng ❤️ Trân",
             "Yêu em thật nhiều",
@@ -955,12 +976,9 @@
         }
 
         const wishesGroup = new THREE.Group();
-        
-        // 🚀 TĂNG SỐ LƯỢNG CHỮ RƠI LÊN GẤP 3-4 LẦN (180 chữ trên điện thoại, 300 chữ trên máy tính)
         const wishTotal = isMobile ? 180 : 300;
 
         for (let i = 0; i < wishTotal; i++) {
-            // Lặp lại liên tục đúng 6 câu chúc
             const text = wishesList[i % wishesList.length];
             const texture = getOrCreateArtisticGlowTexture(text, false);
             const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
@@ -968,7 +986,6 @@
             const sprite = new THREE.Sprite(material);
             sprite.scale.set(118, 23.6, 1);
             
-            // Phân bổ đều khắp không gian 3D xung quanh camera
             sprite.position.set(
                 (Math.random() - 0.5) * 900,
                 (Math.random() - 0.5) * 900,
@@ -985,7 +1002,6 @@
             wishesGroup.add(sprite);
         }
 
-        // TĂNG BỔ SUNG ICON LUNGLINH TRONG KHÔNG GIAN
         const iconTotal = isMobile ? 50 : 80;
         for (let i = 0; i < iconTotal; i++) {
             const icon = glowingIcons[i % glowingIcons.length];
