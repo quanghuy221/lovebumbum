@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Quà Trung Thu Tặng Người iu❤️</title>
+    <title>Quà Trung Thu cho Em❤️</title>
     
     <link rel="preload" href="nhac1.m4a" as="audio" type="audio/mp4">
     <link rel="preload" href="nhac2.m4a" as="audio" type="audio/mp4">
@@ -42,7 +42,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(5, 1, 12, 0.88);
+            background: rgba(5, 1, 12, 0.92);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
             z-index: 99999;
@@ -402,7 +402,7 @@
 </head>
 <body>
 
-    <audio id="bgMusic" src="nhac1.m4a" loop preload="auto" style="display: none;"></audio>
+    <audio id="bgMusic" src="nhac1.m4a" loop preload="auto" playsinline webkit-playsinline style="display: none;"></audio>
 
     <div id="start-overlay">
         <div class="start-card">
@@ -418,38 +418,32 @@
             const startOverlay = document.getElementById('start-overlay');
             audio.volume = 0.8;
 
-            let audioCtx = null;
+            let isUnlocked = false;
 
-            function startExperience() {
-                if (!audioCtx) {
-                    const AudioContext = window.AudioContext || window.webkitAudioContext;
-                    if (AudioContext) {
-                        audioCtx = new AudioContext();
-                    }
-                }
+            function handleStartInteraction(e) {
+                if (isUnlocked) return;
                 
-                if (audioCtx && audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
-
                 audio.play().then(() => {
+                    isUnlocked = true;
                     startOverlay.classList.add('fade-out');
-                    removeUnlockListeners();
-                }).catch(() => {
-                    startOverlay.classList.add('fade-out');
+                }).catch(() => {});
+
+                ['click', 'touchend', 'pointerdown'].forEach(evt => {
+                    startOverlay.removeEventListener(evt, handleStartInteraction);
                 });
             }
 
-            function removeUnlockListeners() {
-                ['click', 'pointerdown', 'touchstart'].forEach(evt => {
-                    startOverlay.removeEventListener(evt, startExperience);
-                    window.removeEventListener(evt, startExperience);
-                });
-            }
+            ['click', 'touchend', 'pointerdown'].forEach(evt => {
+                startOverlay.addEventListener(evt, handleStartInteraction, { passive: false });
+            });
 
-            startOverlay.addEventListener('click', startExperience);
-            startOverlay.addEventListener('touchstart', startExperience, { passive: true });
-            window.addEventListener('pointerdown', startExperience, { once: true });
+            document.addEventListener('touchstart', function globalFallback() {
+                if (!isUnlocked) {
+                    audio.play();
+                    isUnlocked = true;
+                    startOverlay.classList.add('fade-out');
+                }
+            }, { once: true });
         })();
     </script>
 
@@ -556,15 +550,17 @@
 
         initCodeProtection();
 
-        const sen1 = "Hưng ❤️ Trân";
-        const sen2 = "Yêu em thật nhiều";
-        const sen3 = "Trung Thu vui vẻ bên anh";
-        const sen4 = "Chúc em luôn vui vẻ";
-        const sen5 = "Bên nhau mãi mãi";
-        const sen6 = "Mãi yêu em";
-
-        const wishesList = [sen1, sen2, sen3, sen4, sen5, sen6];
-        const glowingIcons = ["🌙", "🌸", "⭐", "🏮", "🤍", "✨", "🥮", "💖"];
+        // 🎯 CHỈ ĐÚNG 6 CÂU CHÚC CHÍNH ĐƯỢC CHỌN LỌC
+        const wishesList = [
+            "Hưng ❤️ Trân",
+            "Yêu em thật nhiều",
+            "Trung Thu vui vẻ bên anh",
+            "Chúc em luôn vui vẻ",
+            "Bên nhau mãi mãi",
+            "Mãi yêu em"
+        ];
+        
+        const glowingIcons = ["🌙", "🌸", "⭐", "🏮", "🤍", "✨", "🥮", "💖", "🌕", "🎆"];
 
         const bgMusic = document.getElementById('bgMusic');
         const playBtn = document.getElementById('playBtn');
@@ -851,7 +847,7 @@
         scene.add(new THREE.AmbientLight(0xffffff, 1.2));
 
         const petalsGroup = new THREE.Group();
-        const petalCount = isMobile ? 35 : 65;
+        const petalCount = isMobile ? 40 : 80;
 
         function createSharedPetalGeometry() {
             const shape = new THREE.Shape();
@@ -885,9 +881,9 @@
             petal.scale.set(scale, scale, scale);
 
             petal.position.set(
-                (Math.random() - 0.5) * 750,
-                (Math.random() - 0.5) * 650,
-                (Math.random() - 0.5) * 750
+                (Math.random() - 0.5) * 800,
+                (Math.random() - 0.5) * 700,
+                (Math.random() - 0.5) * 800
             );
 
             petal.rotation.set(
@@ -897,11 +893,11 @@
             );
 
             petal.userData = {
-                speedY: 0.35 + Math.random() * 0.45,
-                rotSpeedX: (Math.random() - 0.5) * 0.02,
-                rotSpeedY: (Math.random() - 0.5) * 0.02,
-                swayFreq: 1.1 + Math.random() * 1.5,
-                swayAmp: 0.3 + Math.random() * 0.4
+                speedY: 0.12 + Math.random() * 0.18,
+                rotSpeedX: (Math.random() - 0.5) * 0.015,
+                rotSpeedY: (Math.random() - 0.5) * 0.015,
+                swayFreq: 0.8 + Math.random() * 1.0,
+                swayAmp: 0.2 + Math.random() * 0.3
             };
 
             petalsGroup.add(petal);
@@ -959,9 +955,12 @@
         }
 
         const wishesGroup = new THREE.Group();
-        const wishTotal = isMobile ? 30 : 48;
+        
+        // 🚀 TĂNG SỐ LƯỢNG CHỮ RƠI LÊN GẤP 3-4 LẦN (180 chữ trên điện thoại, 300 chữ trên máy tính)
+        const wishTotal = isMobile ? 180 : 300;
 
         for (let i = 0; i < wishTotal; i++) {
+            // Lặp lại liên tục đúng 6 câu chúc
             const text = wishesList[i % wishesList.length];
             const texture = getOrCreateArtisticGlowTexture(text, false);
             const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
@@ -969,40 +968,42 @@
             const sprite = new THREE.Sprite(material);
             sprite.scale.set(118, 23.6, 1);
             
+            // Phân bổ đều khắp không gian 3D xung quanh camera
             sprite.position.set(
-                (Math.random() - 0.5) * 650,
-                (Math.random() - 0.5) * 700,
-                (Math.random() - 0.5) * 650
+                (Math.random() - 0.5) * 900,
+                (Math.random() - 0.5) * 900,
+                (Math.random() - 0.5) * 800
             );
 
             sprite.userData = {
-                fallSpeed: 0.18 + Math.random() * 0.22,
-                swayFreq: 0.8 + Math.random() * 0.9,
-                swayAmp: 0.25 + Math.random() * 0.35,
+                fallSpeed: 0.06 + Math.random() * 0.09,
+                swayFreq: 0.5 + Math.random() * 0.8,
+                swayAmp: 0.2 + Math.random() * 0.35,
                 floatOffset: Math.random() * Math.PI * 2
             };
 
             wishesGroup.add(sprite);
         }
 
-        const iconTotal = isMobile ? 15 : 25;
+        // TĂNG BỔ SUNG ICON LUNGLINH TRONG KHÔNG GIAN
+        const iconTotal = isMobile ? 50 : 80;
         for (let i = 0; i < iconTotal; i++) {
             const icon = glowingIcons[i % glowingIcons.length];
             const texture = getOrCreateArtisticGlowTexture(icon, true);
             const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
             const sprite = new THREE.Sprite(material);
-            sprite.scale.set(25, 25, 1);
+            sprite.scale.set(24, 24, 1);
 
             sprite.position.set(
-                (Math.random() - 0.5) * 650,
-                (Math.random() - 0.5) * 700,
-                (Math.random() - 0.5) * 650
+                (Math.random() - 0.5) * 900,
+                (Math.random() - 0.5) * 900,
+                (Math.random() - 0.5) * 800
             );
 
             sprite.userData = {
-                fallSpeed: 0.22 + Math.random() * 0.28,
-                swayFreq: 1.0 + Math.random() * 1.2,
-                swayAmp: 0.3 + Math.random() * 0.4,
+                fallSpeed: 0.07 + Math.random() * 0.08,
+                swayFreq: 0.6 + Math.random() * 0.8,
+                swayAmp: 0.25 + Math.random() * 0.35,
                 floatOffset: Math.random() * Math.PI * 2
             };
 
@@ -1033,10 +1034,10 @@
                 petal.rotation.x += petal.userData.rotSpeedX * timeFactor;
                 petal.rotation.y += petal.userData.rotSpeedY * timeFactor;
 
-                if (petal.position.y < -350) {
-                    petal.position.y = 350;
-                    petal.position.x = (Math.random() - 0.5) * 750;
-                    petal.position.z = (Math.random() - 0.5) * 750;
+                if (petal.position.y < -450) {
+                    petal.position.y = 450;
+                    petal.position.x = (Math.random() - 0.5) * 900;
+                    petal.position.z = (Math.random() - 0.5) * 800;
                 }
             }
 
@@ -1047,10 +1048,10 @@
                 sprite.position.x += Math.sin(elapsedTime * sprite.userData.swayFreq + sprite.userData.floatOffset) * sprite.userData.swayAmp * timeFactor;
                 sprite.position.z += Math.cos(elapsedTime * sprite.userData.swayFreq * 0.7 + sprite.userData.floatOffset) * (sprite.userData.swayAmp * 0.4) * timeFactor;
 
-                if (sprite.position.y < -350) {
-                    sprite.position.y = 350;
-                    sprite.position.x = (Math.random() - 0.5) * 650;
-                    sprite.position.z = (Math.random() - 0.5) * 650;
+                if (sprite.position.y < -450) {
+                    sprite.position.y = 450;
+                    sprite.position.x = (Math.random() - 0.5) * 900;
+                    sprite.position.z = (Math.random() - 0.5) * 800;
                 }
             }
 
