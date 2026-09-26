@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Quà Trung Thu cho Em❤️</title>
+    
+    <link rel="preload" href="nhac1.m4a" as="audio" type="audio/mp4">
+    <link rel="preload" href="nhac2.m4a" as="audio" type="audio/mp4">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+        html, body {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            background-color: #030008;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            touch-action: none;
+        }
+        #webgl-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Overlay Màn hình bắt đầu */
+        #start-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(5, 1, 12, 0.88);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+        #start-overlay.fade-out {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .start-card {
+            text-align: center;
+            padding: 30px 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 120, 190, 0.4);
+            border-radius: 24px;
+            box-shadow: 0 0 30px rgba(255, 59, 129, 0.35);
+            animation: pulseCard 2s infinite ease-in-out;
+            max-width: 90vw;
+        }
+        @keyframes pulseCard {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(255, 59, 129, 0.35); }
+            50% { transform: scale(1.03); box-shadow: 0 0 50px rgba(255, 59, 129, 0.6); }
+        }
+        .start-icon {
+            font-size: 50px;
+            margin-bottom: 12px;
+            display: inline-block;
+            animation: heartBeat 1.2s infinite;
+        }
+        @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        .start-title {
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            text-shadow: 0 0 10px #ff3b81;
+        }
+        .start-subtitle {
+            color: #ffb3de;
+            font-size: 14px;
+        }
+
+        #security-alert {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(8, 2, 14, 0.96);
+            color: #ff3b81;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+            font-family: sans-serif;
+            text-align: center;
+            padding: 20px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .media-control-panel {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px;
+            background: rgba(18, 6, 32, 0.78);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border: 1px solid rgba(255, 100, 180, 0.4);
+            border-radius: 40px;
+            box-shadow: 0 10px 35px 0 rgba(255, 30, 130, 0.32),
+                        inset 0 0 16px rgba(255, 105, 180, 0.22);
+            transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.35s, box-shadow 0.35s;
+            will-change: transform;
+            transform: translateZ(0);
+            max-width: 96vw;
+        }
+
+        .media-control-panel:hover {
+            border-color: rgba(255, 150, 210, 0.7);
+            box-shadow: 0 12px 42px 0 rgba(255, 30, 130, 0.5),
+                        inset 0 0 22px rgba(255, 105, 180, 0.35);
+            transform: translateY(-2px) translateZ(0);
+        }
+
+        .play-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 120, 190, 0.4);
+            outline: none;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            color: #ffe0f2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s ease;
+            flex-shrink: 0;
+        }
+
+        .play-btn:hover {
+            background: rgba(255, 59, 129, 0.4);
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(255, 59, 129, 0.6);
+            transform: scale(1.08);
+        }
+
+        .play-btn svg {
+            width: 15px;
+            height: 15px;
+            fill: currentColor;
+        }
+
+        .music-select-wrapper {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .music-select-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 120, 190, 0.3);
+            border-radius: 20px;
+            padding: 5px 10px;
+            color: #ffe0f2;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.25s ease;
+            outline: none;
+            white-space: nowrap;
+        }
+
+        .music-select-btn:hover {
+            background: rgba(255, 60, 140, 0.25);
+            border-color: rgba(255, 150, 210, 0.8);
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(255, 59, 129, 0.4);
+        }
+
+        .music-select-btn .arrow-icon {
+            font-size: 9px;
+            transition: transform 0.3s ease;
+        }
+
+        .music-select-wrapper.open .arrow-icon {
+            transform: rotate(180deg);
+        }
+
+        .music-menu {
+            position: absolute;
+            bottom: calc(100% + 12px);
+            left: 0;
+            min-width: 180px;
+            background: rgba(18, 6, 32, 0.95);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 100, 180, 0.4);
+            border-radius: 14px;
+            padding: 6px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 18px rgba(255, 59, 129, 0.3);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px) scale(0.95);
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            z-index: 1010;
+        }
+
+        .music-select-wrapper.open .music-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+
+        .music-option {
+            padding: 8px 10px;
+            border-radius: 10px;
+            color: #ffc2eb;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s ease, padding 0.2s ease, color 0.2s ease;
+        }
+
+        .music-option:hover {
+            background: rgba(255, 59, 129, 0.3);
+            color: #ffffff;
+            padding-left: 14px;
+        }
+
+        .music-option.active {
+            background: linear-gradient(135deg, rgba(255, 59, 129, 0.45), rgba(180, 40, 180, 0.45));
+            color: #ffffff;
+            font-weight: 700;
+            border: 1px solid rgba(255, 150, 210, 0.5);
+        }
+
+        .seekbar-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 1;
+        }
+
+        .time-display {
+            font-size: 10px;
+            font-weight: 600;
+            color: #ffb3de;
+            font-family: monospace;
+            min-width: 70px;
+            text-align: center;
+            text-shadow: 0 0 6px rgba(255, 59, 129, 0.6);
+            white-space: nowrap;
+        }
+
+        input[type="range"].custom-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 4px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+            cursor: pointer;
+            transition: background 0.1s ease;
+        }
+
+        input[type="range"].custom-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 0 8px #ff3b81, 0 0 14px #ff3b81;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        input[type="range"].custom-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.35);
+            background: #ffe0f2;
+        }
+
+        input[type="range"].custom-slider::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            border: none;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 0 8px #ff3b81, 0 0 14px #ff3b81;
+            cursor: pointer;
+        }
+
+        #seekBar {
+            width: 90px;
+            flex-shrink: 1;
+        }
+
+        .panel-divider {
+            width: 1px;
+            height: 18px;
+            background: rgba(255, 255, 255, 0.18);
+            flex-shrink: 0;
+        }
+
+        .volume-btn {
+            background: none;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            color: #ff80bf;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px;
+            flex-shrink: 0;
+            transition: transform 0.25s ease, color 0.25s ease;
+        }
+
+        .volume-btn:hover {
+            color: #ffffff;
+            transform: scale(1.15);
+            filter: drop-shadow(0 0 6px #ff3b81);
+        }
+
+        .volume-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        .volume-slider-container {
+            display: flex;
+            align-items: center;
+            width: 55px;
+            flex-shrink: 0;
+        }
+
+        #volumeSlider {
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .media-control-panel {
+                bottom: 12px;
+                right: 50%;
+                transform: translateX(50%) translateZ(0);
+                padding: 6px 10px;
+                gap: 6px;
+            }
+            .media-control-panel:hover {
+                transform: translateX(50%) translateY(-2px) translateZ(0);
+            }
+            #seekBar {
+                width: 60px;
+            }
+            .volume-slider-container {
+                width: 42px;
+            }
+            .music-select-btn {
+                font-size: 11px;
+                padding: 4px 6px;
+            }
+            .time-display {
+                font-size: 9px;
+                min-width: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bgMusic" src="nhac1.m4a" loop preload="auto" style="display: none;"></audio>
+
+    <div id="start-overlay">
+        <div class="start-card">
+            <div class="start-icon">💖</div>
+            <div class="start-title">Hưng ❤️ Trân</div>
+            <div class="start-subtitle">Chạm vào bất kỳ đâu để bắt đầu</div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const audio = document.getElementById('bgMusic');
+            const startOverlay = document.getElementById('start-overlay');
+            audio.volume = 0.8;
+
+            let audioCtx = null;
+
+            function startExperience() {
+                if (!audioCtx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) {
+                        audioCtx = new AudioContext();
+                    }
+                }
+                
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                audio.play().then(() => {
+                    startOverlay.classList.add('fade-out');
+                    removeUnlockListeners();
+                }).catch(() => {
+                    startOverlay.classList.add('fade-out');
+                });
+            }
+
+            function removeUnlockListeners() {
+                ['click', 'pointerdown', 'touchstart'].forEach(evt => {
+                    startOverlay.removeEventListener(evt, startExperience);
+                    window.removeEventListener(evt, startExperience);
+                });
+            }
+
+            startOverlay.addEventListener('click', startExperience);
+            startOverlay.addEventListener('touchstart', startExperience, { passive: true });
+            window.addEventListener('pointerdown', startExperience, { once: true });
+        })();
+    </script>
+
+    <div id="webgl-container"></div>
+
+    <div class="media-control-panel" id="mediaPanel">
+        <button class="play-btn" id="playBtn" title="Phát / Tạm dừng">
+            <svg id="playIcon" viewBox="0 0 24 24">
+                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+            </svg>
+        </button>
+
+        <div class="music-select-wrapper" id="musicSelectWrapper">
+            <button class="music-select-btn" id="musicSelectBtn" title="Chọn bài hát">
+                <span class="music-icon">🎵</span>
+                <span id="currentTrackText">Bài 1: Wo Ai Ni</span>
+                <span class="arrow-icon">▲</span>
+            </button>
+            <div class="music-menu" id="musicMenu">
+                <div class="music-option active" data-src="nhac1.m4a" data-title="Bài 1: Wo Ai Ni">
+                    <span>🎶</span> Bài 1: Wo Ai Ni
+                </div>
+                <div class="music-option" data-src="nhac2.m4a" data-title="Bài 2: Trúng Mánh Rồi">
+                    <span>🔥</span> Bài 2: Trúng Mánh Rồi
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-divider"></div>
+
+        <div class="seekbar-container">
+            <input type="range" class="custom-slider" id="seekBar" min="0" max="100" value="0" step="0.1">
+            <span class="time-display" id="timeDisplay">00:00/00:00</span>
+        </div>
+
+        <div class="panel-divider"></div>
+
+        <button class="volume-btn" id="volumeBtn" title="Bật/Tắt tiếng">
+            <svg id="volumeIcon" viewBox="0 0 24 24">
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+            </svg>
+        </button>
+        <div class="volume-slider-container">
+            <input type="range" class="custom-slider" id="volumeSlider" min="0" max="1" step="0.01" value="0.8">
+        </div>
+    </div>
+
+    <div id="security-alert">
+        <h1 style="font-size:32px; margin-bottom:12px; letter-spacing: 1px;">⚠️ CẢNH BÁO BẢO MẬT</h1>
+        <p style="font-size:18px; color:#ffffff; max-width:520px; line-height:1.6;">Phát hiện hành vi mở DevTools / Soi mã nguồn!</p>
+        <p style="font-size:14px; color:#b0b0b0; margin-top:16px;">Vui lòng đóng công cụ kiểm tra (F12) để tiếp tục thưởng thức không gian 3D.</p>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+
+    <script>
+        function initCodeProtection() {
+            const alertOverlay = document.getElementById('security-alert');
+            const debugChecker = new Function('debugger');
+
+            function setAlert(open) {
+                alertOverlay.style.display = open ? 'flex' : 'none';
+            }
+
+            window.addEventListener('keydown', function(e) {
+                if (
+                    e.keyCode === 123 ||
+                    (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67 || e.keyCode === 75)) ||
+                    (e.ctrlKey && (e.keyCode === 85 || e.keyCode === 83)) ||
+                    (e.metaKey && e.altKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) ||
+                    (e.metaKey && (e.keyCode === 85 || e.keyCode === 83))
+                ) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setAlert(true);
+                    return false;
+                }
+            }, true);
+
+            window.addEventListener('contextmenu', e => e.preventDefault(), true);
+            document.addEventListener('dragstart', e => e.preventDefault());
+
+            setInterval(function() {
+                const threshold = 160;
+                const isWindowDevToolsOpen = (window.outerWidth - window.innerWidth > threshold) || (window.outerHeight - window.innerHeight > threshold);
+
+                let isDebuggerActive = false;
+                const startTime = performance.now();
+                debugChecker();
+                if (performance.now() - startTime > 100) {
+                    isDebuggerActive = true;
+                }
+
+                setAlert(isWindowDevToolsOpen || isDebuggerActive);
+            }, 1000);
+        }
+
+        initCodeProtection();
+
+        const sen1 = "Hưng ❤️ Trân";
+        const sen2 = "Yêu em thật nhiều";
+        const sen3 = "Trung Thu vui vẻ bên anh";
+        const sen4 = "Chúc em luôn vui vẻ";
+        const sen5 = "Bên nhau mãi mãi";
+        const sen6 = "Mãi yêu em";
+
+        const wishesList = [sen1, sen2, sen3, sen4, sen5, sen6];
+        const glowingIcons = ["🌙", "🌸", "⭐", "🏮", "🤍", "✨", "🥮", "💖"];
+
+        const bgMusic = document.getElementById('bgMusic');
+        const playBtn = document.getElementById('playBtn');
+        const playIcon = document.getElementById('playIcon');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volumeBtn = document.getElementById('volumeBtn');
+        const volumeIcon = document.getElementById('volumeIcon');
+        const seekBar = document.getElementById('seekBar');
+        const timeDisplay = document.getElementById('timeDisplay');
+
+        const musicSelectWrapper = document.getElementById('musicSelectWrapper');
+        const musicSelectBtn = document.getElementById('musicSelectBtn');
+        const currentTrackText = document.getElementById('currentTrackText');
+        const musicOptions = document.querySelectorAll('.music-option');
+
+        let lastVolume = 0.8;
+        let isUserSeeking = false;
+
+        function formatTime(seconds) {
+            if (isNaN(seconds) || seconds === Infinity) return "00:00";
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        function updateSliderTrackGradient(slider, val, max) {
+            const percentage = max > 0 ? (val / max) * 100 : 0;
+            slider.style.background = `linear-gradient(to right, #ff3b81 0%, #ff80bf ${percentage}%, rgba(255, 255, 255, 0.2) ${percentage}%, rgba(255, 255, 255, 0.2) 100%)`;
+        }
+
+        function updateVolumeUI(vol) {
+            updateSliderTrackGradient(volumeSlider, vol, 1);
+            if (vol == 0) {
+                volumeIcon.innerHTML = '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
+            } else if (vol < 0.5) {
+                volumeIcon.innerHTML = '<path d="M18.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM5 9v6h4l5 5V4L9 9H5z"/>';
+            } else {
+                volumeIcon.innerHTML = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>';
+            }
+        }
+
+        function updatePlayIcon(isPaused) {
+            if (isPaused) {
+                playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+            } else {
+                playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+            }
+        }
+
+        playBtn.addEventListener('click', () => {
+            if (bgMusic.paused) {
+                bgMusic.play().catch(() => {});
+            } else {
+                bgMusic.pause();
+            }
+        });
+
+        bgMusic.addEventListener('play', () => updatePlayIcon(false));
+        bgMusic.addEventListener('pause', () => updatePlayIcon(true));
+
+        function syncSeekBar() {
+            if (!isUserSeeking && bgMusic.duration) {
+                const current = bgMusic.currentTime;
+                const duration = bgMusic.duration;
+                seekBar.value = (current / duration) * 100;
+                updateSliderTrackGradient(seekBar, seekBar.value, 100);
+                timeDisplay.textContent = `${formatTime(current)}/${formatTime(duration)}`;
+            }
+        }
+
+        bgMusic.addEventListener('timeupdate', syncSeekBar);
+        bgMusic.addEventListener('loadedmetadata', syncSeekBar);
+
+        const startSeeking = () => { isUserSeeking = true; };
+        seekBar.addEventListener('mousedown', startSeeking);
+        seekBar.addEventListener('touchstart', startSeeking, { passive: true });
+
+        seekBar.addEventListener('input', () => {
+            if (bgMusic.duration) {
+                const targetTime = (seekBar.value / 100) * bgMusic.duration;
+                updateSliderTrackGradient(seekBar, seekBar.value, 100);
+                timeDisplay.textContent = `${formatTime(targetTime)}/${formatTime(bgMusic.duration)}`;
+            }
+        });
+
+        const endSeeking = () => {
+            if (isUserSeeking && bgMusic.duration) {
+                bgMusic.currentTime = (seekBar.value / 100) * bgMusic.duration;
+            }
+            isUserSeeking = false;
+        };
+
+        seekBar.addEventListener('change', endSeeking);
+        seekBar.addEventListener('mouseup', endSeeking);
+        seekBar.addEventListener('touchend', endSeeking);
+
+        musicSelectBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            musicSelectWrapper.classList.toggle('open');
+        });
+
+        document.addEventListener('click', () => {
+            musicSelectWrapper.classList.remove('open');
+        });
+
+        musicOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                musicOptions.forEach(opt => opt.classList.remove('active'));
+                this.classList.add('active');
+
+                const src = this.getAttribute('data-src');
+                const title = this.getAttribute('data-title');
+
+                currentTrackText.textContent = title;
+                musicSelectWrapper.classList.remove('open');
+
+                if (bgMusic) {
+                    bgMusic.src = src;
+                    seekBar.value = 0;
+                    updateSliderTrackGradient(seekBar, 0, 100);
+                    timeDisplay.textContent = "00:00/00:00";
+                    bgMusic.play().catch(() => {});
+                }
+            });
+        });
+
+        if (bgMusic) {
+            bgMusic.volume = parseFloat(volumeSlider.value);
+            updateVolumeUI(bgMusic.volume);
+
+            volumeSlider.addEventListener('input', function() {
+                const vol = parseFloat(this.value);
+                bgMusic.volume = vol;
+                if (vol > 0) lastVolume = vol;
+                updateVolumeUI(vol);
+            });
+
+            volumeBtn.addEventListener('click', function() {
+                if (bgMusic.volume > 0) {
+                    lastVolume = bgMusic.volume;
+                    bgMusic.volume = 0;
+                    volumeSlider.value = 0;
+                } else {
+                    bgMusic.volume = lastVolume > 0 ? lastVolume : 0.8;
+                    volumeSlider.value = bgMusic.volume;
+                }
+                updateVolumeUI(bgMusic.volume);
+            });
+        }
+
+        const container = document.getElementById('webgl-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x030008, 0.00055);
+
+        const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+        
+        function calculateFOV() {
+            return (window.innerWidth / window.innerHeight) < 1 ? 60 : 42;
+        }
+
+        const camera = new THREE.PerspectiveCamera(calculateFOV(), window.innerWidth / window.innerHeight, 0.1, 4000);
+        camera.position.set(0, 0, isMobile ? 500 : 400);
+
+        const renderer = new THREE.WebGLRenderer({ 
+            antialias: !isMobile, 
+            powerPreference: "high-performance",
+            alpha: false,
+            stencil: false,
+            depth: true
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.25 : 2));
+        renderer.toneMapping = THREE.LinearToneMapping;
+        renderer.toneMappingExposure = 1.25;
+        container.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.rotateSpeed = 0.8;
+        controls.zoomSpeed = 1.8;
+        controls.panSpeed = 1.0;
+        controls.screenSpacePanning = true;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.3;
+        controls.maxDistance = 1600;
+        controls.minDistance = 1.0;
+
+        const renderScene = new THREE.RenderPass(scene, camera);
+        const bloomPass = new THREE.UnrealBloomPass(
+            new THREE.Vector2(window.innerWidth / (isMobile ? 2.5 : 1.5), window.innerHeight / (isMobile ? 2.5 : 1.5)),
+            0.5,
+            0.35,
+            0.3
+        );
+
+        const composer = new THREE.EffectComposer(renderer);
+        composer.addPass(renderScene);
+        composer.addPass(bloomPass);
+
+        function createStarAndNebulaSystem() {
+            const starCount = isMobile ? 1500 : 2800;
+            const starGeo = new THREE.BufferGeometry();
+            const positions = new Float32Array(starCount * 3);
+            const colors = new Float32Array(starCount * 3);
+
+            const palette = [
+                new THREE.Color(0xffffff),
+                new THREE.Color(0xf1caff),
+                new THREE.Color(0xffb3de),
+                new THREE.Color(0x9ee5ff)
+            ];
+
+            for (let i = 0; i < starCount; i++) {
+                const r = 160 + Math.random() * 1050;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos((Math.random() * 2) - 1);
+
+                positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+                positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+                positions[i * 3 + 2] = r * Math.cos(phi);
+
+                const c = palette[Math.floor(Math.random() * palette.length)];
+                colors[i * 3] = c.r;
+                colors[i * 3 + 1] = c.g;
+                colors[i * 3 + 2] = c.b;
+            }
+
+            starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            starGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const starMat = new THREE.PointsMaterial({
+                size: isMobile ? 1.5 : 2.0,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.85
+            });
+
+            const starSystem = new THREE.Points(starGeo, starMat);
+            scene.add(starSystem);
+
+            const nebulaCount = isMobile ? 5 : 10;
+            const nebulaGroup = new THREE.Group();
+
+            function createNebulaTexture() {
+                const canvas = document.createElement('canvas');
+                canvas.width = 128;
+                canvas.height = 128;
+                const ctx = canvas.getContext('2d');
+                const grad = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+                grad.addColorStop(0, 'rgba(180, 70, 220, 0.18)');
+                grad.addColorStop(0.4, 'rgba(230, 80, 160, 0.08)');
+                grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, 128, 128);
+                return new THREE.CanvasTexture(canvas);
+            }
+
+            const nebulaTex = createNebulaTexture();
+            const nebulaMat = new THREE.SpriteMaterial({
+                map: nebulaTex,
+                transparent: true,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+
+            for (let i = 0; i < nebulaCount; i++) {
+                const sprite = new THREE.Sprite(nebulaMat);
+                const scale = 300 + Math.random() * 450;
+                sprite.scale.set(scale, scale, 1);
+                sprite.position.set(
+                    (Math.random() - 0.5) * 800,
+                    (Math.random() - 0.5) * 600,
+                    (Math.random() - 0.5) * 800
+                );
+                nebulaGroup.add(sprite);
+            }
+            scene.add(nebulaGroup);
+
+            return { starSystem, nebulaGroup };
+        }
+
+        const universe = createStarAndNebulaSystem();
+        scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+
+        const petalsGroup = new THREE.Group();
+        const petalCount = isMobile ? 35 : 65;
+
+        function createSharedPetalGeometry() {
+            const shape = new THREE.Shape();
+            shape.moveTo(0, 0);
+            shape.bezierCurveTo(12, 16, 22, 12, 16, -12);
+            shape.bezierCurveTo(8, -26, -8, -26, -16, -12);
+            shape.bezierCurveTo(-22, 12, -12, 16, 0, 0);
+
+            const geometry = new THREE.ShapeGeometry(shape);
+            const pos = geometry.attributes.position;
+            for (let i = 0; i < pos.count; i++) {
+                const x = pos.getX(i);
+                const y = pos.getY(i);
+                pos.setZ(i, Math.sin(x * 0.1) * 3 + Math.cos(y * 0.1) * 2);
+            }
+            geometry.computeVertexNormals();
+            return geometry;
+        }
+
+        const sharedPetalGeometry = createSharedPetalGeometry();
+        const sharedPetalMaterial = new THREE.MeshBasicMaterial({
+            color: 0xf00040,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.92
+        });
+
+        for (let i = 0; i < petalCount; i++) {
+            const petal = new THREE.Mesh(sharedPetalGeometry, sharedPetalMaterial);
+            const scale = 0.3 + Math.random() * 0.45;
+            petal.scale.set(scale, scale, scale);
+
+            petal.position.set(
+                (Math.random() - 0.5) * 750,
+                (Math.random() - 0.5) * 650,
+                (Math.random() - 0.5) * 750
+            );
+
+            petal.rotation.set(
+                Math.random() * Math.PI,
+                Math.random() * Math.PI,
+                Math.random() * Math.PI
+            );
+
+            petal.userData = {
+                speedY: 0.35 + Math.random() * 0.45,
+                rotSpeedX: (Math.random() - 0.5) * 0.02,
+                rotSpeedY: (Math.random() - 0.5) * 0.02,
+                swayFreq: 1.1 + Math.random() * 1.5,
+                swayAmp: 0.3 + Math.random() * 0.4
+            };
+
+            petalsGroup.add(petal);
+        }
+        scene.add(petalsGroup);
+
+        const textureCache = new Map();
+
+        function getOrCreateArtisticGlowTexture(text, isIcon = false) {
+            const cacheKey = (isIcon ? 'icon_' : 'text_') + text;
+            if (textureCache.has(cacheKey)) {
+                return textureCache.get(cacheKey);
+            }
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            if (isIcon) {
+                canvas.width = 128;
+                canvas.height = 128;
+                ctx.font = '60px "Segoe UI", system-ui, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.shadowColor = 'rgba(255, 100, 190, 0.95)';
+                ctx.shadowBlur = 16;
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(text, 64, 64);
+            } else {
+                canvas.width = 512;
+                canvas.height = 100;
+                ctx.font = 'bold 36px "Segoe UI", system-ui, Arial, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                ctx.strokeStyle = 'rgba(12, 2, 22, 0.92)';
+                ctx.lineWidth = 8;
+                ctx.strokeText(text, 256, 50);
+
+                ctx.shadowColor = 'rgba(255, 30, 130, 0.95)';
+                ctx.shadowBlur = 16;
+                
+                const textGrad = ctx.createLinearGradient(0, 0, 0, 100);
+                textGrad.addColorStop(0, '#ffffff');
+                textGrad.addColorStop(1, '#ffe0f2');
+                ctx.fillStyle = textGrad;
+                ctx.fillText(text, 256, 50);
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            
+            textureCache.set(cacheKey, texture);
+            return texture;
+        }
+
+        const wishesGroup = new THREE.Group();
+        const wishTotal = isMobile ? 30 : 48;
+
+        for (let i = 0; i < wishTotal; i++) {
+            const text = wishesList[i % wishesList.length];
+            const texture = getOrCreateArtisticGlowTexture(text, false);
+            const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+
+            const sprite = new THREE.Sprite(material);
+            sprite.scale.set(118, 23.6, 1);
+            
+            sprite.position.set(
+                (Math.random() - 0.5) * 650,
+                (Math.random() - 0.5) * 700,
+                (Math.random() - 0.5) * 650
+            );
+
+            sprite.userData = {
+                fallSpeed: 0.18 + Math.random() * 0.22,
+                swayFreq: 0.8 + Math.random() * 0.9,
+                swayAmp: 0.25 + Math.random() * 0.35,
+                floatOffset: Math.random() * Math.PI * 2
+            };
+
+            wishesGroup.add(sprite);
+        }
+
+        const iconTotal = isMobile ? 15 : 25;
+        for (let i = 0; i < iconTotal; i++) {
+            const icon = glowingIcons[i % glowingIcons.length];
+            const texture = getOrCreateArtisticGlowTexture(icon, true);
+            const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+            const sprite = new THREE.Sprite(material);
+            sprite.scale.set(25, 25, 1);
+
+            sprite.position.set(
+                (Math.random() - 0.5) * 650,
+                (Math.random() - 0.5) * 700,
+                (Math.random() - 0.5) * 650
+            );
+
+            sprite.userData = {
+                fallSpeed: 0.22 + Math.random() * 0.28,
+                swayFreq: 1.0 + Math.random() * 1.2,
+                swayAmp: 0.3 + Math.random() * 0.4,
+                floatOffset: Math.random() * Math.PI * 2
+            };
+
+            wishesGroup.add(sprite);
+        }
+
+        scene.add(wishesGroup);
+
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const delta = Math.min(clock.getDelta(), 0.05);
+            const timeFactor = delta * 60; 
+            const elapsedTime = clock.getElapsedTime();
+
+            universe.starSystem.rotation.y = elapsedTime * 0.003;
+            universe.nebulaGroup.rotation.y = elapsedTime * 0.002;
+
+            const petals = petalsGroup.children;
+            for (let i = 0; i < petals.length; i++) {
+                const petal = petals[i];
+                petal.position.y -= petal.userData.speedY * timeFactor;
+                petal.position.x += Math.sin(elapsedTime * petal.userData.swayFreq) * petal.userData.swayAmp * timeFactor;
+                petal.position.z += Math.cos(elapsedTime * petal.userData.swayFreq * 0.8) * (petal.userData.swayAmp * 0.5) * timeFactor;
+
+                petal.rotation.x += petal.userData.rotSpeedX * timeFactor;
+                petal.rotation.y += petal.userData.rotSpeedY * timeFactor;
+
+                if (petal.position.y < -350) {
+                    petal.position.y = 350;
+                    petal.position.x = (Math.random() - 0.5) * 750;
+                    petal.position.z = (Math.random() - 0.5) * 750;
+                }
+            }
+
+            const wishes = wishesGroup.children;
+            for (let i = 0; i < wishes.length; i++) {
+                const sprite = wishes[i];
+                sprite.position.y -= sprite.userData.fallSpeed * timeFactor;
+                sprite.position.x += Math.sin(elapsedTime * sprite.userData.swayFreq + sprite.userData.floatOffset) * sprite.userData.swayAmp * timeFactor;
+                sprite.position.z += Math.cos(elapsedTime * sprite.userData.swayFreq * 0.7 + sprite.userData.floatOffset) * (sprite.userData.swayAmp * 0.4) * timeFactor;
+
+                if (sprite.position.y < -350) {
+                    sprite.position.y = 350;
+                    sprite.position.x = (Math.random() - 0.5) * 650;
+                    sprite.position.z = (Math.random() - 0.5) * 650;
+                }
+            }
+
+            controls.update();
+            composer.render();
+        }
+
+        animate();
+
+        function handleResize() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+
+            camera.aspect = width / height;
+            camera.fov = calculateFOV();
+            camera.updateProjectionMatrix();
+
+            renderer.setSize(width, height);
+            composer.setSize(width, height);
+            bloomPass.setSize(width / (isMobile ? 2.5 : 1.5), height / (isMobile ? 2.5 : 1.5));
+        }
+
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('orientationchange', () => setTimeout(handleResize, 200));
+    </script>
+</body>
+</html>
