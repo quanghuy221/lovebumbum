@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Quà Trung Thu cho Em❤️</title>
-    
+
     <link rel="preload" href="nhac1.m4a" as="audio" type="audio/mp4">
     <link rel="preload" href="nhac2.m4a" as="audio" type="audio/mp4">
 
@@ -34,7 +34,6 @@
             z-index: 1;
         }
 
-        /* Overlay Màn hình bắt đầu */
         #start-overlay {
             position: fixed;
             top: 0;
@@ -51,6 +50,7 @@
             align-items: center;
             cursor: pointer;
             transition: opacity 0.5s ease, visibility 0.5s ease;
+            touch-action: manipulation;
         }
         #start-overlay.fade-out {
             opacity: 0;
@@ -387,8 +387,7 @@
 </head>
 <body>
 
-    <!-- Thẻ Audio chuẩn hóa thuộc tính cho Safari / Mobile -->
-    <audio id="bgMusic" src="nhac1.m4a" loop preload="auto" playsinline webkit-playsinline></audio>
+    <audio id="bgMusic" src="nhac1.m4a" loop preload="auto" playsinline webkit-playsinline x-webkit-airplay="allow"></audio>
 
     <div id="start-overlay">
         <div class="start-card">
@@ -445,56 +444,124 @@
         <p style="font-size:14px; color:#b0b0b0; margin-top:16px;">Vui lòng đóng công cụ kiểm tra (F12) để tiếp tục thưởng thức không gian 3D.</p>
     </div>
 
-    <!-- 🎯 BỘ UNLOCK PHÁT NHẠC CHUẨN XÁC 100% -->
+    <!-- 🎯 UNLOCK PHÁT NHẠC 100% CHO MỌI THIẾT BỊ -->
     <script>
-        let globalAudioCtx = null;
-        let isAudioUnlocked = false;
+        (function () {
+            var bgMusic = document.getElementById('bgMusic');
+            var startOverlay = document.getElementById('start-overlay');
+            var hasStarted = false;
+            var retryTimer = null;
+            var globalAudioCtx = null;
 
-        async function initAndUnlockAudio() {
-            const bgMusic = document.getElementById('bgMusic');
-            const startOverlay = document.getElementById('start-overlay');
-
+            // Tạo AudioContext ngay từ đầu (nếu có) - iOS cần nó được resume trong gesture
             try {
-                // 1. Tạo Web Audio Context nếu chưa có
-                if (!globalAudioCtx) {
-                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                    if (AudioContextClass) {
-                        globalAudioCtx = new AudioContextClass();
+                var AC = window.AudioContext || window.webkitAudioContext;
+                if (AC) globalAudioCtx = new AC();
+            } catch (e) {}
+
+            function unlockAudioCtx() {
+                if (!globalAudioCtx) return;
+                try {
+                    if (globalAudioCtx.state === 'suspended' && globalAudioCtx.resume) {
+                        globalAudioCtx.resume();
                     }
-                }
-
-                // 2. Ép buộc AudioContext phải chuyên sang trạng thái Running BẮT BUỘC
-                if (globalAudioCtx && globalAudioCtx.state === 'suspended') {
-                    await globalAudioCtx.resume();
-                }
-
-                // 3. Đặt âm lượng và thực hiện Play
-                bgMusic.volume = 0.8;
-                await bgMusic.play();
-                
-                isAudioUnlocked = true;
-                startOverlay.classList.add('fade-out');
-
-            } catch (err) {
-                console.error("Lỗi unlock audio:", err);
-                // Fallback nếu trình duyệt chặn Promise
-                bgMusic.play().then(() => {
-                    isAudioUnlocked = true;
-                    startOverlay.classList.add('fade-out');
-                }).catch(e => {
-                    alert("Không thể tự phát nhạc! Kiểm tra lại file nhac1.m4a xem có trong thư mục không.");
-                });
+                    // Phát 1 buffer im lặng để "mở khoá" audio iOS
+                    var buf = globalAudioCtx.createBuffer(1, 1, 22050);
+                    var src = globalAudioCtx.createBufferSource();
+                    src.buffer = buf;
+                    src.connect(globalAudioCtx.destination);
+                    if (src.start) src.start(0); else if (src.noteOn) src.noteOn(0);
+                } catch (e) {}
             }
-        }
 
-        // Đăng ký sự kiện chạm vào màn hình Overlay để kích hoạt phát nhạc ngay
-        const startOverlayEl = document.getElementById('start-overlay');
-        ['click', 'touchstart', 'pointerdown'].forEach(evtType => {
-            startOverlayEl.addEventListener(evtType, function handler(e) {
-                if (isAudioUnlocked) return;
-                initAndUnlockAudio();
-            }, { once: true });
-        });
+            // Hàm "ép phát" - chạy đồng bộ trong gesture
+            function forcePlay() {
+                if (hasStarted) return;
+                hasStarted = true;
+
+                // Ẩn overlay ngay
+                if (startOverlay) startOverlay.classList.add('fade-out');
+
+                // Mở khoá AudioContext ngay trong gesture
+                unlockAudioCtx();
+
+                // Cấu hình
+                bgMusic.volume = 0.8;
+                bgMusic.muted = false;
+                bgMusic.loop = true;
+
+                // GỌI PLAY NGAY LẬP TỨC - không await, không setTimeout
+                var p = bgMusic.play();
+
+                if (p && typeof p.then === 'function') {
+                    p.then(function () {
+                        console.log('✅ Phát nhạc thành công!');
+                        if (retryTimer) { clearInterval(retryTimer); retryTimer = null; }
+                    }).catch(function (err) {
+                        console.warn('⚠️ Lần đầu fail, đang retry...', err);
+                        startRetry();
+                    });
+                } else {
+                    // Trình duyệt cũ trả về undefined
+                    setTimeout(function () {
+                        if (bgMusic.paused) startRetry();
+                    }, 150);
+                }
+            }
+
+            function startRetry() {
+                if (retryTimer) return;
+                var tries = 0;
+                retryTimer = setInterval(function () {
+                    tries++;
+                    unlockAudioCtx();
+                    try {
+                        var p = bgMusic.play();
+                        if (p && typeof p.then === 'function') {
+                            p.then(function () {
+                                console.log('✅ Retry thành công sau ' + tries + ' lần');
+                                clearInterval(retryTimer);
+                                retryTimer = null;
+                            }).catch(function () {});
+                        }
+                    } catch (e) {}
+                    if (tries > 20) { // dừng sau ~6 giây
+                        clearInterval(retryTimer);
+                        retryTimer = null;
+                    }
+                }, 300);
+            }
+
+            // Gắn vào DOCUMENT với capture=true → bắt mọi cú chạm ở bất kỳ đâu
+            var events = ['pointerdown', 'touchstart', 'touchend', 'mousedown', 'click', 'keydown'];
+            events.forEach(function (evt) {
+                document.addEventListener(evt, function handler(e) {
+                    // Chỉ kích hoạt 1 lần
+                    if (hasStarted && !retryTimer) return;
+                    forcePlay();
+                }, { capture: true, passive: true });
+            });
+
+            // Fallback cực mạnh: nếu vì lý do gì đó mà chưa phát, thử lại khi user tương tác
+            setTimeout(function () {
+                if (bgMusic.paused && !retryTimer) {
+                    // Chưa phát được → chờ tương tác tiếp theo
+                    events.forEach(function (evt) {
+                        document.addEventListener(evt, function () {
+                            if (bgMusic.paused) startRetry();
+                        }, { capture: true, passive: true });
+                    });
+                }
+            }, 1000);
+
+            // Khi tab quay lại active → thử resume nếu đang bị pause
+            document.addEventListener('visibilitychange', function () {
+                if (!document.hidden && bgMusic.paused && hasStarted) {
+                    unlockAudioCtx();
+                    bgMusic.play().catch(function () {});
+                }
+            });
+        })();
     </script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -554,11 +621,11 @@
             "Hưng ❤️ Trân",
             "Yêu em thật nhiều",
             "Trung Thu vui vẻ bên anh",
-            "Chúc bé iu trung thu vui vẻ",
+            "Chúc em luôn vui vẻ",
             "Bên nhau mãi mãi",
             "Mãi yêu em"
         ];
-        
+
         const glowingIcons = ["🌙", "🌸", "⭐", "🏮", "🤍", "✨", "🥮", "💖", "🌕", "🎆"];
 
         const bgMusic = document.getElementById('bgMusic');
@@ -609,7 +676,7 @@
         }
 
         playBtn.addEventListener('click', async () => {
-            if (globalAudioCtx && globalAudioCtx.state === 'suspended') {
+            if (typeof globalAudioCtx !== 'undefined' && globalAudioCtx && globalAudioCtx.state === 'suspended') {
                 await globalAudioCtx.resume();
             }
             if (bgMusic.paused) {
@@ -683,8 +750,8 @@
                     seekBar.value = 0;
                     updateSliderTrackGradient(seekBar, 0, 100);
                     timeDisplay.textContent = "00:00/00:00";
-                    
-                    if (globalAudioCtx && globalAudioCtx.state === 'suspended') {
+
+                    if (typeof globalAudioCtx !== 'undefined' && globalAudioCtx && globalAudioCtx.state === 'suspended') {
                         await globalAudioCtx.resume();
                     }
                     bgMusic.play().catch(() => {});
@@ -692,7 +759,6 @@
             });
         });
 
-        // Khởi tạo âm lượng mặc định + chỉ giữ nút bật/tắt tiếng
         if (bgMusic) {
             bgMusic.volume = DEFAULT_VOLUME;
             updateVolumeUI(bgMusic.volume);
@@ -713,7 +779,7 @@
         scene.fog = new THREE.FogExp2(0x030008, 0.00055);
 
         const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-        
+
         function calculateFOV() {
             return (window.innerWidth / window.innerHeight) < 1 ? 60 : 42;
         }
@@ -721,8 +787,8 @@
         const camera = new THREE.PerspectiveCamera(calculateFOV(), window.innerWidth / window.innerHeight, 0.1, 4000);
         camera.position.set(0, 0, isMobile ? 500 : 400);
 
-        const renderer = new THREE.WebGLRenderer({ 
-            antialias: !isMobile, 
+        const renderer = new THREE.WebGLRenderer({
+            antialias: !isMobile,
             powerPreference: "high-performance",
             alpha: false,
             stencil: false,
@@ -935,7 +1001,7 @@
 
                 ctx.shadowColor = 'rgba(255, 30, 130, 0.95)';
                 ctx.shadowBlur = 16;
-                
+
                 const textGrad = ctx.createLinearGradient(0, 0, 0, 100);
                 textGrad.addColorStop(0, '#ffffff');
                 textGrad.addColorStop(1, '#ffe0f2');
@@ -946,7 +1012,7 @@
             const texture = new THREE.CanvasTexture(canvas);
             texture.minFilter = THREE.LinearFilter;
             texture.magFilter = THREE.LinearFilter;
-            
+
             textureCache.set(cacheKey, texture);
             return texture;
         }
@@ -961,7 +1027,7 @@
 
             const sprite = new THREE.Sprite(material);
             sprite.scale.set(118, 23.6, 1);
-            
+
             sprite.position.set(
                 (Math.random() - 0.5) * 900,
                 (Math.random() - 0.5) * 900,
@@ -1010,7 +1076,7 @@
             requestAnimationFrame(animate);
 
             const delta = Math.min(clock.getDelta(), 0.05);
-            const timeFactor = delta * 60; 
+            const timeFactor = delta * 60;
             const elapsedTime = clock.getElapsedTime();
 
             universe.starSystem.rotation.y = elapsedTime * 0.003;
